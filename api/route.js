@@ -4,10 +4,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY_CHATBOT,
 });
 
-export async function POST(req) {
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
   try {
-    const body = await req.json();
-    const { messages, context } = body;
+    const { messages, context } = req.body;
 
     const fullMessages = [
       {
@@ -23,9 +26,9 @@ export async function POST(req) {
       temperature: 0.7,
     });
 
-    return Response.json({ reply: chat.choices[0].message.content });
+    res.status(200).json({ reply: chat.choices[0].message.content });
   } catch (err) {
     console.error('Chatbot error:', err);
-    return Response.json({ error: 'Chatbot failed to respond' }, { status: 500 });
+    res.status(500).json({ error: 'Chatbot failed to respond' });
   }
 }
